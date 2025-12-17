@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FocusPod - English Learning OS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* 复古纹理背景 */
+        body {
+            background-color: #e0e0e0;
+            background-image: radial-gradient(#d1d1d1 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        /* 磁带转动动画 */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .animate-spin-slow {
+            animation: spin 2s linear infinite;
+        }
+
+        /* 拟物化阴影 (Neumorphism / Retro Vibe) */
+        .player-shadow {
+            box-shadow: 
+                10px 10px 30px rgba(0,0,0,0.15), 
+                -5px -5px 15px rgba(255,255,255,0.8);
+        }
+        
+        .window-shadow {
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .btn-press:active {
+            transform: scale(0.95);
+            box-shadow: inset 3px 3px 5px rgba(0,0,0,0.2);
+        }
+
+        /* 字体 */
+        .retro-font {
+            font-family: 'Teko', sans-serif;
+        }
+    </style>
+</head>
+<body class="h-screen flex items-center justify-center p-4">
+
+    <div class="bg-slate-200 w-80 h-[500px] rounded-3xl player-shadow flex flex-col p-6 relative border border-slate-300">
+        
+        <div class="flex justify-between items-center mb-6">
+            <span class="retro-font text-2xl text-slate-500 tracking-wider font-bold">FOCUSPOD</span>
+            <div class="flex gap-1">
+                <div class="w-2 h-2 rounded-full bg-red-500" id="power-light"></div>
+                <span class="text-xs text-slate-400 font-bold">REC</span>
+            </div>
+        </div>
+
+        <div class="bg-slate-800 h-48 rounded-lg window-shadow mb-8 p-4 relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-full h-full bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10"></div>
+            
+            <div class="bg-orange-100 w-full h-full rounded flex items-center justify-center relative">
+                <div class="flex gap-8 z-0">
+                    <div class="w-12 h-12 rounded-full border-4 border-slate-700 flex items-center justify-center bg-white reel">
+                        <div class="w-full h-1 bg-slate-700 absolute rotate-0"></div>
+                        <div class="w-full h-1 bg-slate-700 absolute rotate-45"></div>
+                        <div class="w-full h-1 bg-slate-700 absolute rotate-90"></div>
+                        <div class="w-full h-1 bg-slate-700 absolute rotate-135"></div>
+                    </div>
+                    <div class="w-12 h-12 rounded-full border-4 border-slate-700 flex items-center justify-center bg-white reel">
+                         <div class="w-full h-1 bg-slate-700 absolute rotate-0"></div>
+                        <div class="w-full h-1 bg-slate-700 absolute rotate-45"></div>
+                        <div class="w-full h-1 bg-slate-700 absolute rotate-90"></div>
+                        <div class="w-full h-1 bg-slate-700 absolute rotate-135"></div>
+                    </div>
+                </div>
+                
+                <div class="absolute bottom-2 w-full text-center">
+                    <p class="retro-font text-slate-600 text-lg leading-none">ENGLISH MASTER</p>
+                    <p class="text-[10px] text-slate-400 font-mono">FOCUS MODE BY SID</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-[#9ea792] h-12 mb-6 rounded border-2 border-slate-400 inset-shadow flex items-center justify-between px-4 font-mono text-slate-800 shadow-inner">
+            <span class="text-xs">PLAYING</span>
+            <span class="text-xl tracking-widest" id="timer">00:00</span>
+        </div>
+
+        <div class="mt-auto grid grid-cols-3 gap-4">
+            <button onclick="togglePlay()" class="col-span-1 h-16 bg-orange-500 rounded-lg shadow-lg btn-press flex flex-col items-center justify-center text-white active:bg-orange-600 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                </svg>
+            </button>
+            
+            <button onclick="togglePlay()" class="col-span-1 h-16 bg-slate-300 rounded-lg shadow-[0_4px_0_rgb(148,163,184)] btn-press flex flex-col items-center justify-center text-slate-600 active:translate-y-1 active:shadow-none transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6" />
+                </svg>
+            </button>
+
+             <button class="col-span-1 h-16 bg-slate-300 rounded-lg shadow-[0_4px_0_rgb(148,163,184)] btn-press flex flex-col items-center justify-center text-slate-600 active:translate-y-1 active:shadow-none transition">
+                <div class="w-4 h-4 bg-slate-500 rounded-sm"></div>
+            </button>
+        </div>
+
+        <div class="absolute bottom-32 left-0 w-full h-[2px] bg-slate-300"></div>
+    </div>
+
+    <script>
+        let isPlaying = false;
+        const reels = document.querySelectorAll('.reel');
+        const timerDisplay = document.getElementById('timer');
+        let seconds = 0;
+        let timerInterval;
+
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            
+            // 控制转轮动画
+            reels.forEach(reel => {
+                if(isPlaying) {
+                    reel.classList.add('animate-spin-slow');
+                } else {
+                    reel.classList.remove('animate-spin-slow');
+                }
+            });
+
+            // 模拟计时器
+            if(isPlaying) {
+                timerInterval = setInterval(() => {
+                    seconds++;
+                    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+                    const secs = (seconds % 60).toString().padStart(2, '0');
+                    timerDisplay.textContent = `${mins}:${secs}`;
+                }, 1000);
+            } else {
+                clearInterval(timerInterval);
+            }
+        }
+    </script>
+</body>
+</html>
