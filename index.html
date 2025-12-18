@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FocusPod - Retro Edition</title>
+    <title>FocusPod - Immersive Edition</title>
     <style>
         /* 引入复古数字字体 */
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
@@ -26,9 +26,11 @@
             margin: 0;
             background-color: var(--bg-color);
             font-family: 'Inter', sans-serif;
+            /* 防止手机端点击高亮 */
+            -webkit-tap-highlight-color: transparent; 
         }
 
-        /* 主播放器容器 - 模拟黑色机身和木纹侧边 */
+        /* 主播放器容器 */
         .player-container {
             background: linear-gradient(to right, var(--chassis-black) 65%, var(--wood-texture) 65%);
             padding: 25px;
@@ -37,48 +39,59 @@
                 0 20px 40px rgba(0,0,0,0.6),
                 inset 0 2px 3px rgba(255,255,255,0.1);
             text-align: center;
-            width: 420px;
+            width: 90%; /* 移动端适配：宽度自适应 */
+            max-width: 420px; /* 电脑端最大宽度 */
             border: 1px solid #000;
             position: relative;
-            /* 简单的木纹噪点效果 */
             background-image: 
                 linear-gradient(to right, var(--chassis-black) 65%, transparent 65%),
                 repeating-linear-gradient(45deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 2px, transparent 2px, transparent 4px),
                 linear-gradient(to right, transparent 65%, var(--wood-texture) 65%);
         }
 
-        /* 卡带/CD区域 */
-        .cassette-container {
-            background: #1a1a1a;
-            border-radius: 8px;
-            padding: 20px;
-            position: relative;
-            margin-bottom: 25px;
-            box-shadow: inset 0 5px 15px rgba(0,0,0,0.8);
-            border: 1px solid #333;
+        /* 左侧区域 */
+        .main-body {
+            width: 62%;
+            padding-right: 2%;
+            box-sizing: border-box;
         }
 
-        /* 标题文字 */
         .album-title {
             font-weight: 700;
             margin-bottom: 15px;
             color: var(--text-muted);
             letter-spacing: 1px;
             text-transform: uppercase;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
         }
 
-        /* 磁带轮子 */
+        /* 卡带区域 */
+        .cassette-container {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 15px;
+            position: relative;
+            margin-bottom: 25px;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.8);
+            border: 1px solid #333;
+            height: 120px; /* 固定高度确保不塌陷 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .tape {
             display: flex;
             justify-content: space-between;
-            margin: 0 30px;
+            width: 100%;
+            padding: 0 10px;
+            box-sizing: border-box;
             filter: grayscale(100%) contrast(120%) brightness(60%);
         }
 
         .reel {
-            width: 70px;
-            height: 70px;
+            width: 60px;
+            height: 60px;
             background: url('https://cdn-icons-png.flaticon.com/512/7258/7258087.png') no-repeat center center / contain;
             border-radius: 50%;
             animation-play-state: paused; 
@@ -93,13 +106,13 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* 控制区 - 放在木纹背景上 */
+        /* 右侧控制区 */
         .controls-container {
             background: rgba(0,0,0,0.2);
             padding: 15px;
             border-radius: 8px;
             margin-left: auto;
-            width: 30%;
+            width: 28%;
             border-left: 2px solid rgba(0,0,0,0.5);
             position: absolute;
             right: 15px;
@@ -107,35 +120,26 @@
             top: 25px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: space-between;
         }
 
-        /* 重新调整布局以适应侧边栏 */
-        .main-body {
-            width: 60%; /* 左侧主体 */
-            padding-right: 10px;
-        }
-
-        /* 计时器 */
         .timer-display {
             font-family: 'VT323', monospace;
             font-size: 2rem;
             color: var(--led-green);
             background: #000;
-            padding: 5px 10px;
+            padding: 5px 0;
             border-radius: 4px;
-            margin-bottom: 20px;
+            text-align: center;
             text-shadow: 0 0 5px var(--led-green);
             border: 2px solid #333;
             width: 100%;
-            box-sizing: border-box;
         }
 
-        /* 按钮组 */
         .buttons {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
             width: 100%;
         }
 
@@ -144,12 +148,14 @@
             padding: 12px 0;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.2s;
+            font-size: 0.9rem;
+            transition: all 0.1s;
             width: 100%;
             font-weight: bold;
             text-transform: uppercase;
             box-shadow: 0 4px 0 rgba(0,0,0,0.5);
+            color: #fff;
+            outline: none;
         }
 
         .btn:active {
@@ -159,29 +165,13 @@
 
         .play-btn {
             background-color: var(--accent-orange);
-            color: #fff;
             box-shadow: 0 4px 0 #b34a00;
         }
 
         .reset-btn {
             background-color: #4a4a4a;
             color: #ccc;
-        }
-
-        /* 隐藏原有的进度条 */
-        .progress-container {
-            display: none;
-        }
-        
-        /* 隐藏原有的底部状态 */
-        .status {
-            display: none;
-        }
-
-        /* 调整整体布局容器 */
-        .controls-wrapper {
-            display: flex;
-            height: 100%;
+            box-shadow: 0 4px 0 #2a2a2a;
         }
     </style>
 </head>
@@ -190,7 +180,7 @@
     <div class="player-container" id="player">
         
         <div class="main-body">
-            <p class="album-title">SIDE A: FOCUS MODE</p>
+            <p class="album-title">SIDE A: DEEP FOCUS</p>
             
             <div class="cassette-container">
                 <div class="tape">
@@ -209,7 +199,11 @@
             </div>
         </div>
         
-        <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-mechanical-switch-click-1082.mp3"></audio>
+        <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-mechanical-switch-click-1082.mp3" preload="auto"></audio>
+        
+        <audio id="ejectSound" src="https://actions.google.com/sounds/v1/tools/ejecting_a_cassette.ogg" preload="auto"></audio>
+        
+        <audio id="bgNoise" loop src="https://actions.google.com/sounds/v1/ambiences/rain_heavy_loud.ogg" preload="auto"></audio>
     </div>
 
     <script>
@@ -220,7 +214,14 @@
         const timerDisplay = document.getElementById('timer');
         const toggleBtn = document.getElementById('toggleBtn');
         const player = document.getElementById('player');
+        
+        // 获取音频元素
         const clickSound = document.getElementById('clickSound');
+        const ejectSound = document.getElementById('ejectSound');
+        const bgNoise = document.getElementById('bgNoise');
+
+        // 设置白噪音音量 (稍微轻一点，不要盖过思考)
+        bgNoise.volume = 0.6;
 
         function updateDisplay() {
             const minutes = Math.floor(timeLeft / 60);
@@ -229,43 +230,58 @@
         }
 
         function toggleTimer() {
+            // 播放机械按键音
             clickSound.currentTime = 0;
             clickSound.play();
 
             if (isRunning) {
-                // Pause
+                // 暂停逻辑
                 clearInterval(timerId);
                 toggleBtn.textContent = 'PLAY';
                 toggleBtn.style.backgroundColor = '#FF6B00';
                 toggleBtn.style.boxShadow = '0 4px 0 #b34a00';
                 player.classList.remove('playing');
+                
+                // 暂停白噪音
+                bgNoise.pause();
             } else {
-                // Start
+                // 开始逻辑
                 timerId = setInterval(() => {
                     timeLeft--;
                     updateDisplay();
                     if (timeLeft === 0) {
                         clearInterval(timerId);
+                        bgNoise.pause(); // 结束时停止噪音
+                        bgNoise.currentTime = 0;
                         alert('Focus Session Complete!');
                         resetTimer();
                     }
                 }, 1000);
                 toggleBtn.textContent = 'PAUSE';
                 toggleBtn.style.backgroundColor = '#d35400'; 
-                toggleBtn.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.5)'; // 按下去的效果
+                toggleBtn.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.5)';
                 player.classList.add('playing');
+                
+                // 播放白噪音
+                bgNoise.play().catch(e => console.log("Audio play failed:", e));
             }
             isRunning = !isRunning;
         }
 
         function resetTimer() {
-            clickSound.currentTime = 0;
-            clickSound.play();
+            // 播放磁带弹出音效 (更有仪式感)
+            ejectSound.currentTime = 0;
+            ejectSound.play();
             
             clearInterval(timerId);
             timeLeft = 25 * 60;
             updateDisplay();
             isRunning = false;
+            
+            // 停止白噪音
+            bgNoise.pause();
+            bgNoise.currentTime = 0;
+
             toggleBtn.textContent = 'PLAY';
             toggleBtn.style.backgroundColor = '#FF6B00';
             toggleBtn.style.boxShadow = '0 4px 0 #b34a00';
