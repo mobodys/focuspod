@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FocusPod - Ultimate Edition</title>
+    <title>FocusPod - Bilingual Edition</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap');
 
         :root {
             --bg-color: #1a1a1a;
@@ -19,6 +21,7 @@
 
         body {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
@@ -26,6 +29,27 @@
             background-color: var(--bg-color);
             font-family: 'Inter', sans-serif;
             -webkit-tap-highlight-color: transparent; 
+            transition: background 0.5s;
+            overflow-x: hidden;
+        }
+
+        /* --- 中文辅助字体样式 --- */
+        .cn-sub {
+            font-size: 0.75em; /* 比英文小 */
+            font-weight: normal;
+            margin-left: 6px;
+            opacity: 0.8; /* 稍微透明，突出英文 */
+            vertical-align: middle;
+        }
+        
+        /* 屏幕上的中文 */
+        .screen-cn {
+            font-family: 'Inter', sans-serif; /* 屏幕里也用无衬线体显示中文 */
+            font-size: 0.5em;
+            display: block; /* 换行显示 */
+            line-height: 1;
+            margin-top: -5px;
+            opacity: 0.7;
         }
 
         .player-container {
@@ -44,6 +68,8 @@
                 linear-gradient(to right, var(--chassis-black) 65%, transparent 65%),
                 repeating-linear-gradient(45deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 2px, transparent 2px, transparent 4px),
                 linear-gradient(to right, transparent 65%, var(--wood-texture) 65%);
+            transition: transform 0.3s, opacity 0.3s;
+            z-index: 10;
         }
 
         .main-body {
@@ -59,10 +85,11 @@
             letter-spacing: 1px;
             text-transform: uppercase;
             font-size: 0.8rem;
+            min-height: 1.2em;
         }
 
         .cassette-container {
-            background: #1a1a1a;
+            background: #111;
             border-radius: 8px;
             padding: 15px;
             position: relative;
@@ -73,7 +100,22 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
         }
+        
+        .insert-hint {
+            color: #444;
+            font-family: 'VT323', monospace;
+            font-size: 1.1rem;
+            animation: blink 2s infinite;
+            pointer-events: none;
+            position: absolute;
+            z-index: 5;
+            line-height: 1.4;
+        }
+
+        @keyframes blink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
 
         .tape {
             display: flex;
@@ -82,18 +124,15 @@
             padding: 0 10px;
             box-sizing: border-box;
             filter: grayscale(100%) contrast(120%) brightness(60%);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
         }
 
-        /* 纯 CSS 扇叶轮子 */
+        .tape.ejected { transform: translateY(150%); opacity: 0; }
+
         .reel {
             width: 60px;
             height: 60px;
-            background: conic-gradient(
-                #1a1a1a 0% 25%, 
-                #333333 25% 50%, 
-                #1a1a1a 50% 75%, 
-                #333333 75% 100%
-            );
+            background: conic-gradient(#1a1a1a 0% 25%, #333333 25% 50%, #1a1a1a 50% 75%, #333333 75% 100%);
             border-radius: 50%;
             border: 3px solid #111;
             box-shadow: inset 0 0 5px rgba(0,0,0,0.8);
@@ -101,13 +140,8 @@
             animation-play-state: paused;
         }
 
-        .player-container.playing .reel {
-            animation-play-state: running;
-        }
-
-        @keyframes spin {
-            100% { transform: rotate(360deg); }
-        }
+        .player-container.playing .reel { animation-play-state: running; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
         .controls-container {
             background: rgba(0,0,0,0.2);
@@ -138,61 +172,118 @@
             width: 100%;
         }
 
-        .buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 8px; /* 稍微调小间距以容纳4个按钮 */
-            width: 100%;
-        }
-
+        .buttons { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+        
         .btn {
-            border: none;
-            padding: 10px 0;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.1s;
-            width: 100%;
-            font-weight: bold;
-            text-transform: uppercase;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.5);
-            color: #fff;
-            outline: none;
+            border: none; padding: 10px 0; border-radius: 4px; cursor: pointer;
+            font-size: 0.8rem; transition: all 0.1s; width: 100%; font-weight: bold;
+            text-transform: uppercase; box-shadow: 0 4px 0 rgba(0,0,0,0.5); color: #fff; outline: none;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .btn:active { transform: translateY(4px); box-shadow: none; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform: translateY(2px); }
+
+        .play-btn { background-color: var(--accent-orange); box-shadow: 0 4px 0 #b34a00; }
+        .option-btn { background-color: #555; color: #ddd; box-shadow: 0 4px 0 #333; }
+        .reset-btn { background-color: #333; color: #888; box-shadow: 0 4px 0 #111; }
+        
+        .zen-btn {
+            position: absolute; top: -40px; right: 0;
+            background: none; border: none; color: #555; cursor: pointer;
+            font-size: 1.5rem; transition: color 0.3s;
+        }
+        .zen-btn:hover { color: #888; }
+
+        body.zen-active .player-container { transform: scale(1.1); }
+        body.zen-active { background-color: #000; justify-content: center; }
+        body.zen-active .stack-container { opacity: 0; pointer-events: none; }
+
+        .stack-container {
+            margin-top: 50px;
+            width: 300px;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            opacity: 0.8;
+            transition: opacity 0.5s;
+        }
+        
+        .stack-title {
+            color: #444; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px;
+            margin-bottom: 10px; font-weight: bold; text-align: center; width: 100%;
         }
 
-        .btn:active {
-            transform: translateY(4px);
-            box-shadow: none;
+        .stacked-tape {
+            width: 280px; height: 40px; background: #222; border: 1px solid #333;
+            border-radius: 4px; margin-bottom: -25px; box-shadow: 0 -2px 5px rgba(0,0,0,0.5);
+            position: relative; display: flex; align-items: center; justify-content: center;
+            color: #555; font-family: 'VT323', monospace; font-size: 0.9rem;
+            transition: transform 0.3s;
+        }
+        .stacked-tape:hover { transform: translateY(-10px); z-index: 100; color: var(--accent-orange); border-color: var(--accent-orange); }
+        .stacked-tape::before { content: ''; position: absolute; left: 10px; width: 30px; height: 30px; border-radius: 50%; border: 2px solid #333; }
+        .stacked-tape::after { content: ''; position: absolute; right: 10px; width: 30px; height: 30px; border-radius: 50%; border: 2px solid #333; }
+
+        /* --- 小票双语优化 --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 100;
+            display: none; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .modal-overlay.show { display: flex; }
+
+        .receipt {
+            background: #fffdf0;
+            padding: 30px 20px;
+            width: 280px; /* 稍微加宽一点适应中文 */
+            font-family: 'Courier Prime', 'SimSun', 'Songti SC', serif; /* 中文使用宋体更有票据感 */
+            color: #333;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            transform: rotate(-2deg);
+            position: relative;
+            text-align: center;
+        }
+        .receipt::before {
+            content: ""; position: absolute; top: -10px; left: 0; width: 100%; height: 10px;
+            background: linear-gradient(45deg, transparent 33.333%, #fffdf0 33.333%, #fffdf0 66.667%, transparent 66.667%), 
+                        linear-gradient(-45deg, transparent 33.333%, #fffdf0 33.333%, #fffdf0 66.667%, transparent 66.667%);
+            background-size: 20px 40px;
+        }
+        .receipt::after {
+            content: ""; position: absolute; bottom: -10px; left: 0; width: 100%; height: 10px;
+            background: linear-gradient(45deg, transparent 33.333%, #fffdf0 33.333%, #fffdf0 66.667%, transparent 66.667%), 
+                        linear-gradient(-45deg, transparent 33.333%, #fffdf0 33.333%, #fffdf0 66.667%, transparent 66.667%);
+            background-size: 20px 40px; transform: rotate(180deg);
         }
 
-        .play-btn {
-            background-color: var(--accent-orange);
-            box-shadow: 0 4px 0 #b34a00;
-        }
+        .receipt h2 { border-bottom: 2px dashed #333; padding-bottom: 10px; margin: 0 0 15px 0; font-size: 1.1rem; letter-spacing: 1px; }
+        .receipt-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; align-items: baseline; }
+        .receipt-label { font-size: 0.8rem; color: #555; }
+        .receipt-val { font-weight: bold; }
+        .receipt-quote { margin-top: 20px; border-top: 2px dashed #333; padding-top: 15px; font-style: italic; font-size: 0.8rem; line-height: 1.4; color: #444; }
+        .receipt-footer { margin-top: 20px; font-size: 0.7rem; color: #888; }
+        
+        .receipt-actions { margin-top: 20px; display: flex; gap: 10px; justify-content: center; }
+        .action-btn { background: #333; color: #fff; border: none; padding: 8px 15px; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.8rem; border-radius: 4px; }
+        .action-btn.save { background: var(--accent-orange); }
 
-        /* 模式和时间按钮共用样式 */
-        .option-btn {
-            background-color: #555;
-            color: #ddd;
-            box-shadow: 0 4px 0 #333;
-        }
-
-        .reset-btn {
-            background-color: #333;
-            color: #888;
-            box-shadow: 0 4px 0 #111;
-        }
     </style>
 </head>
 <body>
 
+    <div style="position: relative; width: 90%; max-width: 420px; text-align: right;">
+        <button class="zen-btn" onclick="toggleZenMode()" title="Zen Mode / 沉浸模式">⛶</button>
+    </div>
+
     <div class="player-container" id="player">
         
         <div class="main-body">
-            <p class="album-title" id="tapeLabel">SIDE A: FOCUS MIX</p>
+            <p class="album-title" id="tapeLabel">NO TAPE INSERTED <br><span style="font-size:0.8em; opacity:0.6">未插入磁带</span></p>
             
-            <div class="cassette-container">
-                <div class="tape">
+            <div class="cassette-container" onclick="toggleTapeInsert()">
+                <div class="insert-hint" id="insertHint">CLICK TO INSERT<br>点击入仓</div>
+                <div class="tape ejected" id="tapeVisual">
                     <div class="reel left-reel"></div>
                     <div class="reel right-reel"></div>
                 </div>
@@ -200,13 +291,21 @@
         </div>
 
         <div class="controls-container">
-            <div class="timer-display" id="timer">25:00</div>
+            <div class="timer-display" id="timer">--:--</div>
             
             <div class="buttons">
-                <button class="btn play-btn" id="toggleBtn" onclick="toggleTimer()">PLAY</button>
-                <button class="btn option-btn" id="timeBtn" onclick="changeDuration()">TIME: 25m</button>
-                <button class="btn option-btn" onclick="changeNoise()">MODE</button>
-                <button class="btn reset-btn" onclick="resetTimer()">RESET</button>
+                <button class="btn play-btn" id="toggleBtn" onclick="toggleTimer()" disabled>
+                    PLAY <span class="cn-sub">播放</span>
+                </button>
+                <button class="btn option-btn" id="timeBtn" onclick="changeDuration()" disabled>
+                    TIME <span class="cn-sub">时长</span>: 25m
+                </button>
+                <button class="btn option-btn" id="modeBtn" onclick="changeNoise()" disabled>
+                    MODE <span class="cn-sub">切换</span>
+                </button>
+                <button class="btn reset-btn" onclick="resetTimer()" disabled>
+                    RESET <span class="cn-sub">重置</span>
+                </button>
             </div>
         </div>
         
@@ -215,72 +314,134 @@
         <audio id="bgNoise" loop preload="auto"></audio>
     </div>
 
+    <div class="stack-container">
+        <div class="stack-title">COMPLETED SESSIONS / 专注记录</div>
+        <div id="tapeStack"></div>
+    </div>
+
+    <div class="modal-overlay" id="receiptModal">
+        <div class="receipt" id="receiptContent">
+            <h2>FOCUS RECEIPT<br><span style="font-size:0.7em; font-weight:normal">专注小票</span></h2>
+            
+            <div class="receipt-row">
+                <span class="receipt-label">DATE 日期:</span>
+                <span class="receipt-val" id="receiptDate">2025-12-18</span>
+            </div>
+            <div class="receipt-row">
+                <span class="receipt-label">TIME 时长:</span>
+                <span class="receipt-val" id="receiptTime">25 MINS</span>
+            </div>
+            <div class="receipt-row">
+                <span class="receipt-label">MODE 模式:</span>
+                <span class="receipt-val" id="receiptMode">RAIN</span>
+            </div>
+            
+            <div class="receipt-quote">
+                "Productivity is being able to do things that you were never able to do before."
+                <br><br>
+                “生产力就是让你能够完成以前无法完成的事情。”
+            </div>
+            
+            <div class="receipt-footer">
+                THANK YOU FOR FOCUSING.<br>感谢你的专注<br>#FocusPod
+            </div>
+            
+            <div class="receipt-actions" data-html2canvas-ignore>
+                <button class="action-btn save" onclick="saveReceipt()">SAVE 保存</button>
+                <button class="action-btn" onclick="closeReceipt()">CLOSE 关闭</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // === 1. 声音库配置 ===
+        // === 1. 声音库 (带中文名) ===
         const noiseTracks = [
-            { name: "RAIN", file: "assets/rain.wav" },
-            { name: "FOREST", file: "assets/forest.m4a" }, 
-            { name: "CAFE", file: "assets/cafe.wav" }      
+            { name: "RAIN", cnName: "雨声", file: "assets/rain.wav" },
+            { name: "FOREST", cnName: "森林", file: "assets/forest.m4a" }, 
+            { name: "CAFE", cnName: "咖啡馆", file: "assets/cafe.wav" }      
         ];
-
-        // === 2. 时长配置 (分钟) ===
         const durations = [25, 45, 60, 5];
-        let durationIndex = 0; // 默认 25分钟
-
+        
+        let durationIndex = 0; 
         let currentTrackIndex = 0;
         let timeLeft = 25 * 60;
         let timerId = null;
         let isRunning = false;
+        let isTapeInserted = false;
         
         const timerDisplay = document.getElementById('timer');
         const tapeLabel = document.getElementById('tapeLabel');
-        const toggleBtn = document.getElementById('toggleBtn');
-        const timeBtn = document.getElementById('timeBtn');
-        const player = document.getElementById('player');
+        const tapeVisual = document.getElementById('tapeVisual');
+        const insertHint = document.getElementById('insertHint');
         const bgNoise = document.getElementById('bgNoise');
         const clickSound = document.getElementById('clickSound');
         const ejectSound = document.getElementById('ejectSound');
+        
+        const allBtns = document.querySelectorAll('.buttons button');
+        const toggleBtn = document.getElementById('toggleBtn');
+        const timeBtn = document.getElementById('timeBtn');
 
         bgNoise.volume = 0.6;
 
-        // 初始化
-        function init() {
-            // 随机选个声音
-            currentTrackIndex = Math.floor(Math.random() * noiseTracks.length);
-            loadTrack(currentTrackIndex);
-            updateDisplay();
+        // === 逻辑更新：支持双语显示 ===
+
+        function toggleTapeInsert() {
+            ejectSound.currentTime = 0;
+            ejectSound.play();
+
+            if (!isTapeInserted) {
+                isTapeInserted = true;
+                tapeVisual.classList.remove('ejected');
+                insertHint.style.display = 'none';
+                allBtns.forEach(btn => btn.disabled = false);
+                loadTrack(currentTrackIndex);
+                updateDisplay();
+            } else {
+                if(isRunning) resetTimer();
+                isTapeInserted = false;
+                tapeVisual.classList.add('ejected');
+                insertHint.style.display = 'block';
+                tapeLabel.innerHTML = "NO TAPE INSERTED <br><span style='font-size:0.8em; opacity:0.6'>未插入磁带</span>";
+                timerDisplay.textContent = "--:--";
+                allBtns.forEach(btn => btn.disabled = true);
+            }
         }
 
-        // === 核心功能：切换时长 ===
+        function toggleZenMode() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => alert(`Error: ${err.message}`));
+                document.body.classList.add('zen-active');
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    document.body.classList.remove('zen-active');
+                }
+            }
+        }
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) document.body.classList.remove('zen-active');
+        });
+
         function changeDuration() {
             clickSound.currentTime = 0;
             clickSound.play();
-
-            // 停止当前播放（如果正在放的话）
-            if (isRunning) {
-                toggleTimer(); // 暂停
-            }
-
-            // 切换到下一个时长档位
+            if (isRunning) toggleTimer();
             durationIndex = (durationIndex + 1) % durations.length;
-            const newMinutes = durations[durationIndex];
-
-            // 更新剩余时间和按钮文字
-            timeLeft = newMinutes * 60;
-            timeBtn.textContent = `TIME: ${newMinutes}m`;
+            timeLeft = durations[durationIndex] * 60;
             
-            // 更新屏幕显示
+            // 按钮文字更新
+            timeBtn.innerHTML = `TIME <span class="cn-sub">时长</span>: ${durations[durationIndex]}m`;
+            
             updateDisplay();
-            
-            // 屏幕闪烁一下提示
-            showTempMessage(`${newMinutes} MIN`);
+            showTempMessage(`${durations[durationIndex]} MIN`);
         }
 
         function loadTrack(index) {
             const track = noiseTracks[index];
             bgNoise.src = track.file;
             bgNoise.load(); 
-            tapeLabel.textContent = `SIDE A: ${track.name} MIX`;
+            // 专辑名双语更新
+            tapeLabel.innerHTML = `SIDE A: ${track.name} MIX <br><span style="font-size:0.8em; opacity:0.6">${track.cnName}</span>`;
         }
 
         function changeNoise() {
@@ -289,14 +450,17 @@
             currentTrackIndex = (currentTrackIndex + 1) % noiseTracks.length;
             const wasPlaying = isRunning;
             loadTrack(currentTrackIndex);
-            showTempMessage(noiseTracks[currentTrackIndex].name);
+            
+            const track = noiseTracks[currentTrackIndex];
+            showTempMessage(track.name); // 临时显示仍用英文，保持复古LED感
+            
             if (wasPlaying) bgNoise.play().catch(e => console.log(e));
         }
 
         function showTempMessage(msg) {
             timerDisplay.textContent = msg;
             setTimeout(() => {
-                updateDisplay();
+                if(isTapeInserted) updateDisplay();
             }, 1000);
         }
 
@@ -312,26 +476,23 @@
 
             if (isRunning) {
                 clearInterval(timerId);
-                toggleBtn.textContent = 'PLAY';
+                toggleBtn.innerHTML = 'PLAY <span class="cn-sub">播放</span>';
                 toggleBtn.style.backgroundColor = '#FF6B00';
                 toggleBtn.style.boxShadow = '0 4px 0 #b34a00';
-                player.classList.remove('playing');
+                document.getElementById('player').classList.remove('playing');
                 bgNoise.pause();
             } else {
                 timerId = setInterval(() => {
                     timeLeft--;
                     updateDisplay();
                     if (timeLeft === 0) {
-                        clearInterval(timerId);
-                        bgNoise.pause();
-                        alert('Focus Session Complete!');
-                        resetTimer();
+                        finishSession();
                     }
                 }, 1000);
-                toggleBtn.textContent = 'PAUSE';
+                toggleBtn.innerHTML = 'PAUSE <span class="cn-sub">暂停</span>';
                 toggleBtn.style.backgroundColor = '#d35400'; 
                 toggleBtn.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.5)';
-                player.classList.add('playing');
+                document.getElementById('player').classList.add('playing');
                 bgNoise.play().catch(e => console.log(e));
             }
             isRunning = !isRunning;
@@ -341,21 +502,80 @@
             ejectSound.currentTime = 0;
             ejectSound.play();
             clearInterval(timerId);
-            
-            // 重置回当前选定的时长，而不是写死的25
             timeLeft = durations[durationIndex] * 60;
-            
             updateDisplay();
             isRunning = false;
             bgNoise.pause();
             bgNoise.currentTime = 0;
-            toggleBtn.textContent = 'PLAY';
+            toggleBtn.innerHTML = 'PLAY <span class="cn-sub">播放</span>';
             toggleBtn.style.backgroundColor = '#FF6B00';
             toggleBtn.style.boxShadow = '0 4px 0 #b34a00';
-            player.classList.remove('playing');
+            document.getElementById('player').classList.remove('playing');
         }
 
-        init();
+        function finishSession() {
+            clearInterval(timerId);
+            bgNoise.pause();
+            isRunning = false;
+            document.getElementById('player').classList.remove('playing');
+            toggleBtn.innerHTML = 'PLAY <span class="cn-sub">播放</span>';
+
+            const today = new Date().toLocaleDateString();
+            const duration = durations[durationIndex];
+            const track = noiseTracks[currentTrackIndex];
+            
+            document.getElementById('receiptDate').innerText = today;
+            document.getElementById('receiptTime').innerText = `${duration} MINS / 分钟`;
+            document.getElementById('receiptMode').innerText = `${track.name} ${track.cnName}`;
+            
+            document.getElementById('receiptModal').classList.add('show');
+
+            addTapeToStack(duration, track.name);
+            saveStackToLocal(duration, track.name);
+            
+            timeLeft = durations[durationIndex] * 60;
+            updateDisplay();
+        }
+
+        function closeReceipt() {
+            document.getElementById('receiptModal').classList.remove('show');
+        }
+
+        function saveReceipt() {
+            const receiptElement = document.getElementById('receiptContent');
+            html2canvas(receiptElement, { scale: 2, backgroundColor: null }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `focuspod-receipt-${Date.now()}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+
+        function addTapeToStack(time, label) {
+            const stack = document.getElementById('tapeStack');
+            const tapeDiv = document.createElement('div');
+            tapeDiv.className = 'stacked-tape';
+            tapeDiv.innerText = `${label} MIX - ${time}m`;
+            const randomRotate = Math.random() * 4 - 2; 
+            tapeDiv.style.transform = `rotate(${randomRotate}deg)`;
+            stack.appendChild(tapeDiv);
+        }
+
+        function saveStackToLocal(time, label) {
+            const history = JSON.parse(localStorage.getItem('focusHistory') || '[]');
+            history.push({ time, label, date: new Date().toISOString() });
+            localStorage.setItem('focusHistory', JSON.stringify(history));
+        }
+
+        function loadStackFromLocal() {
+            const history = JSON.parse(localStorage.getItem('focusHistory') || '[]');
+            history.forEach(item => {
+                addTapeToStack(item.time, item.label);
+            });
+        }
+
+        currentTrackIndex = Math.floor(Math.random() * noiseTracks.length);
+        loadStackFromLocal(); 
     </script>
 </body>
 </html>
