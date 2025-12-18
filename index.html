@@ -3,144 +3,273 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FocusPod - English Learning OS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600&display=swap" rel="stylesheet">
-    
+    <title>FocusPod - Retro Edition</title>
     <style>
-        /* 复古纹理背景 */
+        /* 引入复古数字字体 */
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+        :root {
+            --bg-color: #1a1a1a;
+            --chassis-black: #2b2b2b;
+            --wood-texture: #855E42;
+            --accent-orange: #FF6B00;
+            --led-green: #50FF50;
+            --text-muted: #888;
+        }
+
         body {
-            background-color: #e0e0e0;
-            background-image: radial-gradient(#d1d1d1 1px, transparent 1px);
-            background-size: 20px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: var(--bg-color);
+            font-family: 'Inter', sans-serif;
         }
 
-        /* 磁带转动动画 */
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .animate-spin-slow {
-            animation: spin 2s linear infinite;
-        }
-
-        /* 拟物化阴影 (Neumorphism / Retro Vibe) */
-        .player-shadow {
+        /* 主播放器容器 - 模拟黑色机身和木纹侧边 */
+        .player-container {
+            background: linear-gradient(to right, var(--chassis-black) 65%, var(--wood-texture) 65%);
+            padding: 25px;
+            border-radius: 12px;
             box-shadow: 
-                10px 10px 30px rgba(0,0,0,0.15), 
-                -5px -5px 15px rgba(255,255,255,0.8);
+                0 20px 40px rgba(0,0,0,0.6),
+                inset 0 2px 3px rgba(255,255,255,0.1);
+            text-align: center;
+            width: 420px;
+            border: 1px solid #000;
+            position: relative;
+            /* 简单的木纹噪点效果 */
+            background-image: 
+                linear-gradient(to right, var(--chassis-black) 65%, transparent 65%),
+                repeating-linear-gradient(45deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 2px, transparent 2px, transparent 4px),
+                linear-gradient(to right, transparent 65%, var(--wood-texture) 65%);
+        }
+
+        /* 卡带/CD区域 */
+        .cassette-container {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            margin-bottom: 25px;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.8);
+            border: 1px solid #333;
+        }
+
+        /* 标题文字 */
+        .album-title {
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        /* 磁带轮子 */
+        .tape {
+            display: flex;
+            justify-content: space-between;
+            margin: 0 30px;
+            filter: grayscale(100%) contrast(120%) brightness(60%);
+        }
+
+        .reel {
+            width: 70px;
+            height: 70px;
+            background: url('https://cdn-icons-png.flaticon.com/512/7258/7258087.png') no-repeat center center / contain;
+            border-radius: 50%;
+            animation-play-state: paused; 
+        }
+
+        .player-container.playing .reel {
+            animation: spin 3s linear infinite;
+            animation-play-state: running;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 控制区 - 放在木纹背景上 */
+        .controls-container {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-left: auto;
+            width: 30%;
+            border-left: 2px solid rgba(0,0,0,0.5);
+            position: absolute;
+            right: 15px;
+            bottom: 25px;
+            top: 25px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* 重新调整布局以适应侧边栏 */
+        .main-body {
+            width: 60%; /* 左侧主体 */
+            padding-right: 10px;
+        }
+
+        /* 计时器 */
+        .timer-display {
+            font-family: 'VT323', monospace;
+            font-size: 2rem;
+            color: var(--led-green);
+            background: #000;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 5px var(--led-green);
+            border: 2px solid #333;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* 按钮组 */
+        .buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .btn {
+            border: none;
+            padding: 12px 0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+            width: 100%;
+            font-weight: bold;
+            text-transform: uppercase;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.5);
+        }
+
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .play-btn {
+            background-color: var(--accent-orange);
+            color: #fff;
+            box-shadow: 0 4px 0 #b34a00;
+        }
+
+        .reset-btn {
+            background-color: #4a4a4a;
+            color: #ccc;
+        }
+
+        /* 隐藏原有的进度条 */
+        .progress-container {
+            display: none;
         }
         
-        .window-shadow {
-            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.2);
+        /* 隐藏原有的底部状态 */
+        .status {
+            display: none;
         }
 
-        .btn-press:active {
-            transform: scale(0.95);
-            box-shadow: inset 3px 3px 5px rgba(0,0,0,0.2);
-        }
-
-        /* 字体 */
-        .retro-font {
-            font-family: 'Teko', sans-serif;
+        /* 调整整体布局容器 */
+        .controls-wrapper {
+            display: flex;
+            height: 100%;
         }
     </style>
 </head>
-<body class="h-screen flex items-center justify-center p-4">
+<body>
 
-    <div class="bg-slate-200 w-80 h-[500px] rounded-3xl player-shadow flex flex-col p-6 relative border border-slate-300">
+    <div class="player-container" id="player">
         
-        <div class="flex justify-between items-center mb-6">
-            <span class="retro-font text-2xl text-slate-500 tracking-wider font-bold">FOCUSPOD</span>
-            <div class="flex gap-1">
-                <div class="w-2 h-2 rounded-full bg-red-500" id="power-light"></div>
-                <span class="text-xs text-slate-400 font-bold">REC</span>
-            </div>
-        </div>
-
-        <div class="bg-slate-800 h-48 rounded-lg window-shadow mb-8 p-4 relative overflow-hidden group">
-            <div class="absolute top-0 right-0 w-full h-full bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10"></div>
+        <div class="main-body">
+            <p class="album-title">SIDE A: FOCUS MODE</p>
             
-            <div class="bg-orange-100 w-full h-full rounded flex items-center justify-center relative">
-                <div class="flex gap-8 z-0">
-                    <div class="w-12 h-12 rounded-full border-4 border-slate-700 flex items-center justify-center bg-white reel">
-                        <div class="w-full h-1 bg-slate-700 absolute rotate-0"></div>
-                        <div class="w-full h-1 bg-slate-700 absolute rotate-45"></div>
-                        <div class="w-full h-1 bg-slate-700 absolute rotate-90"></div>
-                        <div class="w-full h-1 bg-slate-700 absolute rotate-135"></div>
-                    </div>
-                    <div class="w-12 h-12 rounded-full border-4 border-slate-700 flex items-center justify-center bg-white reel">
-                         <div class="w-full h-1 bg-slate-700 absolute rotate-0"></div>
-                        <div class="w-full h-1 bg-slate-700 absolute rotate-45"></div>
-                        <div class="w-full h-1 bg-slate-700 absolute rotate-90"></div>
-                        <div class="w-full h-1 bg-slate-700 absolute rotate-135"></div>
-                    </div>
-                </div>
-                
-                <div class="absolute bottom-2 w-full text-center">
-                    <p class="retro-font text-slate-600 text-lg leading-none">ENGLISH MASTER</p>
-                    <p class="text-[10px] text-slate-400 font-mono">FOCUS MODE BY SID</p>
+            <div class="cassette-container">
+                <div class="tape">
+                    <div class="reel left-reel"></div>
+                    <div class="reel right-reel"></div>
                 </div>
             </div>
         </div>
 
-        <div class="bg-[#9ea792] h-12 mb-6 rounded border-2 border-slate-400 inset-shadow flex items-center justify-between px-4 font-mono text-slate-800 shadow-inner">
-            <span class="text-xs">PLAYING</span>
-            <span class="text-xl tracking-widest" id="timer">00:00</span>
-        </div>
-
-        <div class="mt-auto grid grid-cols-3 gap-4">
-            <button onclick="togglePlay()" class="col-span-1 h-16 bg-orange-500 rounded-lg shadow-lg btn-press flex flex-col items-center justify-center text-white active:bg-orange-600 transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                </svg>
-            </button>
+        <div class="controls-container">
+            <div class="timer-display" id="timer">25:00</div>
             
-            <button onclick="togglePlay()" class="col-span-1 h-16 bg-slate-300 rounded-lg shadow-[0_4px_0_rgb(148,163,184)] btn-press flex flex-col items-center justify-center text-slate-600 active:translate-y-1 active:shadow-none transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6" />
-                </svg>
-            </button>
-
-             <button class="col-span-1 h-16 bg-slate-300 rounded-lg shadow-[0_4px_0_rgb(148,163,184)] btn-press flex flex-col items-center justify-center text-slate-600 active:translate-y-1 active:shadow-none transition">
-                <div class="w-4 h-4 bg-slate-500 rounded-sm"></div>
-            </button>
+            <div class="buttons">
+                <button class="btn play-btn" id="toggleBtn" onclick="toggleTimer()">PLAY</button>
+                <button class="btn reset-btn" onclick="resetTimer()">RESET</button>
+            </div>
         </div>
-
-        <div class="absolute bottom-32 left-0 w-full h-[2px] bg-slate-300"></div>
+        
+        <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-mechanical-switch-click-1082.mp3"></audio>
     </div>
 
     <script>
-        let isPlaying = false;
-        const reels = document.querySelectorAll('.reel');
+        let timeLeft = 25 * 60;
+        let timerId = null;
+        let isRunning = false;
+        
         const timerDisplay = document.getElementById('timer');
-        let seconds = 0;
-        let timerInterval;
+        const toggleBtn = document.getElementById('toggleBtn');
+        const player = document.getElementById('player');
+        const clickSound = document.getElementById('clickSound');
 
-        function togglePlay() {
-            isPlaying = !isPlaying;
-            
-            // 控制转轮动画
-            reels.forEach(reel => {
-                if(isPlaying) {
-                    reel.classList.add('animate-spin-slow');
-                } else {
-                    reel.classList.remove('animate-spin-slow');
-                }
-            });
+        function updateDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
 
-            // 模拟计时器
-            if(isPlaying) {
-                timerInterval = setInterval(() => {
-                    seconds++;
-                    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
-                    const secs = (seconds % 60).toString().padStart(2, '0');
-                    timerDisplay.textContent = `${mins}:${secs}`;
-                }, 1000);
+        function toggleTimer() {
+            clickSound.currentTime = 0;
+            clickSound.play();
+
+            if (isRunning) {
+                // Pause
+                clearInterval(timerId);
+                toggleBtn.textContent = 'PLAY';
+                toggleBtn.style.backgroundColor = '#FF6B00';
+                toggleBtn.style.boxShadow = '0 4px 0 #b34a00';
+                player.classList.remove('playing');
             } else {
-                clearInterval(timerInterval);
+                // Start
+                timerId = setInterval(() => {
+                    timeLeft--;
+                    updateDisplay();
+                    if (timeLeft === 0) {
+                        clearInterval(timerId);
+                        alert('Focus Session Complete!');
+                        resetTimer();
+                    }
+                }, 1000);
+                toggleBtn.textContent = 'PAUSE';
+                toggleBtn.style.backgroundColor = '#d35400'; 
+                toggleBtn.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.5)'; // 按下去的效果
+                player.classList.add('playing');
             }
+            isRunning = !isRunning;
+        }
+
+        function resetTimer() {
+            clickSound.currentTime = 0;
+            clickSound.play();
+            
+            clearInterval(timerId);
+            timeLeft = 25 * 60;
+            updateDisplay();
+            isRunning = false;
+            toggleBtn.textContent = 'PLAY';
+            toggleBtn.style.backgroundColor = '#FF6B00';
+            toggleBtn.style.boxShadow = '0 4px 0 #b34a00';
+            player.classList.remove('playing');
         }
     </script>
 </body>
