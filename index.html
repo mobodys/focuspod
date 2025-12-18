@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FocusPod - Retro Edition</title>
+    <title>FocusPod - Ultimate Edition</title>
     <style>
-        /* 引入复古数字字体 */
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
 
@@ -26,11 +25,9 @@
             margin: 0;
             background-color: var(--bg-color);
             font-family: 'Inter', sans-serif;
-            /* 防止手机端点击高亮 */
             -webkit-tap-highlight-color: transparent; 
         }
 
-        /* 主播放器容器 */
         .player-container {
             background: linear-gradient(to right, var(--chassis-black) 65%, var(--wood-texture) 65%);
             padding: 25px;
@@ -39,8 +36,8 @@
                 0 20px 40px rgba(0,0,0,0.6),
                 inset 0 2px 3px rgba(255,255,255,0.1);
             text-align: center;
-            width: 90%; /* 移动端适配：宽度自适应 */
-            max-width: 420px; /* 电脑端最大宽度 */
+            width: 90%;
+            max-width: 420px;
             border: 1px solid #000;
             position: relative;
             background-image: 
@@ -49,7 +46,6 @@
                 linear-gradient(to right, transparent 65%, var(--wood-texture) 65%);
         }
 
-        /* 左侧区域 */
         .main-body {
             width: 62%;
             padding-right: 2%;
@@ -65,7 +61,6 @@
             font-size: 0.8rem;
         }
 
-        /* 卡带区域 */
         .cassette-container {
             background: #1a1a1a;
             border-radius: 8px;
@@ -74,7 +69,7 @@
             margin-bottom: 25px;
             box-shadow: inset 0 5px 15px rgba(0,0,0,0.8);
             border: 1px solid #333;
-            height: 120px; /* 固定高度确保不塌陷 */
+            height: 120px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -89,11 +84,10 @@
             filter: grayscale(100%) contrast(120%) brightness(60%);
         }
 
-        /* 磁带轮子 - 扇叶风格 (这样转起来才看得清！) */
+        /* 纯 CSS 扇叶轮子 */
         .reel {
             width: 60px;
             height: 60px;
-            /* 使用锥形渐变，模拟深浅相间的扇叶 */
             background: conic-gradient(
                 #1a1a1a 0% 25%, 
                 #333333 25% 50%, 
@@ -103,27 +97,18 @@
             border-radius: 50%;
             border: 3px solid #111;
             box-shadow: inset 0 0 5px rgba(0,0,0,0.8);
-            
-            /* 核心动画设置 */
             animation: spin 2s linear infinite;
-            animation-play-state: paused; /* 默认：暂停 */
+            animation-play-state: paused;
         }
-        
-        /* 只有当播放器加上 playing 类时，轮子才开始转 */
+
         .player-container.playing .reel {
-            animation-play-state: running; /* 播放：转动 */
-        }
-        
-        /* 确保动画关键帧存在 (如果在文件其他地方没删，这段可以不贴，但贴了更保险) */
-        @keyframes spin {
-            100% { transform: rotate(360deg); }
+            animation-play-state: running;
         }
 
         @keyframes spin {
             100% { transform: rotate(360deg); }
         }
 
-        /* 右侧控制区 */
         .controls-container {
             background: rgba(0,0,0,0.2);
             padding: 15px;
@@ -156,16 +141,16 @@
         .buttons {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 8px; /* 稍微调小间距以容纳4个按钮 */
             width: 100%;
         }
 
         .btn {
             border: none;
-            padding: 12px 0;
+            padding: 10px 0;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             transition: all 0.1s;
             width: 100%;
             font-weight: bold;
@@ -185,10 +170,17 @@
             box-shadow: 0 4px 0 #b34a00;
         }
 
+        /* 模式和时间按钮共用样式 */
+        .option-btn {
+            background-color: #555;
+            color: #ddd;
+            box-shadow: 0 4px 0 #333;
+        }
+
         .reset-btn {
-            background-color: #4a4a4a;
-            color: #ccc;
-            box-shadow: 0 4px 0 #2a2a2a;
+            background-color: #333;
+            color: #888;
+            box-shadow: 0 4px 0 #111;
         }
     </style>
 </head>
@@ -197,7 +189,7 @@
     <div class="player-container" id="player">
         
         <div class="main-body">
-            <p class="album-title">SIDE A: DEEP FOCUS</p>
+            <p class="album-title" id="tapeLabel">SIDE A: FOCUS MIX</p>
             
             <div class="cassette-container">
                 <div class="tape">
@@ -212,33 +204,101 @@
             
             <div class="buttons">
                 <button class="btn play-btn" id="toggleBtn" onclick="toggleTimer()">PLAY</button>
+                <button class="btn option-btn" id="timeBtn" onclick="changeDuration()">TIME: 25m</button>
+                <button class="btn option-btn" onclick="changeNoise()">MODE</button>
                 <button class="btn reset-btn" onclick="resetTimer()">RESET</button>
             </div>
         </div>
         
         <audio id="clickSound" src="assets/click.wav" preload="auto"></audio>
-        
         <audio id="ejectSound" src="assets/eject.wav" preload="auto"></audio>
-        
-        <audio id="bgNoise" loop src="assets/rain.wav" preload="auto"></audio>
+        <audio id="bgNoise" loop preload="auto"></audio>
     </div>
 
     <script>
+        // === 1. 声音库配置 ===
+        const noiseTracks = [
+            { name: "RAIN", file: "assets/rain.wav" },
+            { name: "FOREST", file: "assets/forest.m4a" }, 
+            { name: "CAFE", file: "assets/cafe.wav" }      
+        ];
+
+        // === 2. 时长配置 (分钟) ===
+        const durations = [25, 45, 60, 5];
+        let durationIndex = 0; // 默认 25分钟
+
+        let currentTrackIndex = 0;
         let timeLeft = 25 * 60;
         let timerId = null;
         let isRunning = false;
         
         const timerDisplay = document.getElementById('timer');
+        const tapeLabel = document.getElementById('tapeLabel');
         const toggleBtn = document.getElementById('toggleBtn');
+        const timeBtn = document.getElementById('timeBtn');
         const player = document.getElementById('player');
-        
-        // 获取音频元素
+        const bgNoise = document.getElementById('bgNoise');
         const clickSound = document.getElementById('clickSound');
         const ejectSound = document.getElementById('ejectSound');
-        const bgNoise = document.getElementById('bgNoise');
 
-        // 设置白噪音音量 (0.0 - 1.0)
         bgNoise.volume = 0.6;
+
+        // 初始化
+        function init() {
+            // 随机选个声音
+            currentTrackIndex = Math.floor(Math.random() * noiseTracks.length);
+            loadTrack(currentTrackIndex);
+            updateDisplay();
+        }
+
+        // === 核心功能：切换时长 ===
+        function changeDuration() {
+            clickSound.currentTime = 0;
+            clickSound.play();
+
+            // 停止当前播放（如果正在放的话）
+            if (isRunning) {
+                toggleTimer(); // 暂停
+            }
+
+            // 切换到下一个时长档位
+            durationIndex = (durationIndex + 1) % durations.length;
+            const newMinutes = durations[durationIndex];
+
+            // 更新剩余时间和按钮文字
+            timeLeft = newMinutes * 60;
+            timeBtn.textContent = `TIME: ${newMinutes}m`;
+            
+            // 更新屏幕显示
+            updateDisplay();
+            
+            // 屏幕闪烁一下提示
+            showTempMessage(`${newMinutes} MIN`);
+        }
+
+        function loadTrack(index) {
+            const track = noiseTracks[index];
+            bgNoise.src = track.file;
+            bgNoise.load(); 
+            tapeLabel.textContent = `SIDE A: ${track.name} MIX`;
+        }
+
+        function changeNoise() {
+            clickSound.currentTime = 0;
+            clickSound.play();
+            currentTrackIndex = (currentTrackIndex + 1) % noiseTracks.length;
+            const wasPlaying = isRunning;
+            loadTrack(currentTrackIndex);
+            showTempMessage(noiseTracks[currentTrackIndex].name);
+            if (wasPlaying) bgNoise.play().catch(e => console.log(e));
+        }
+
+        function showTempMessage(msg) {
+            timerDisplay.textContent = msg;
+            setTimeout(() => {
+                updateDisplay();
+            }, 1000);
+        }
 
         function updateDisplay() {
             const minutes = Math.floor(timeLeft / 60);
@@ -247,29 +307,23 @@
         }
 
         function toggleTimer() {
-            // 播放机械按键音
             clickSound.currentTime = 0;
-            clickSound.play().catch(e => console.log("Click play failed:", e));
+            clickSound.play();
 
             if (isRunning) {
-                // 暂停逻辑
                 clearInterval(timerId);
                 toggleBtn.textContent = 'PLAY';
                 toggleBtn.style.backgroundColor = '#FF6B00';
                 toggleBtn.style.boxShadow = '0 4px 0 #b34a00';
                 player.classList.remove('playing');
-                
-                // 暂停白噪音
                 bgNoise.pause();
             } else {
-                // 开始逻辑
                 timerId = setInterval(() => {
                     timeLeft--;
                     updateDisplay();
                     if (timeLeft === 0) {
                         clearInterval(timerId);
-                        bgNoise.pause(); // 结束时停止噪音
-                        bgNoise.currentTime = 0;
+                        bgNoise.pause();
                         alert('Focus Session Complete!');
                         resetTimer();
                     }
@@ -278,32 +332,30 @@
                 toggleBtn.style.backgroundColor = '#d35400'; 
                 toggleBtn.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.5)';
                 player.classList.add('playing');
-                
-                // 播放白噪音
-                bgNoise.play().catch(e => console.log("Noise play failed:", e));
+                bgNoise.play().catch(e => console.log(e));
             }
             isRunning = !isRunning;
         }
 
         function resetTimer() {
-            // 播放磁带弹出音效
             ejectSound.currentTime = 0;
-            ejectSound.play().catch(e => console.log("Eject play failed:", e));
-            
+            ejectSound.play();
             clearInterval(timerId);
-            timeLeft = 25 * 60;
+            
+            // 重置回当前选定的时长，而不是写死的25
+            timeLeft = durations[durationIndex] * 60;
+            
             updateDisplay();
             isRunning = false;
-            
-            // 停止白噪音
             bgNoise.pause();
             bgNoise.currentTime = 0;
-
             toggleBtn.textContent = 'PLAY';
             toggleBtn.style.backgroundColor = '#FF6B00';
             toggleBtn.style.boxShadow = '0 4px 0 #b34a00';
             player.classList.remove('playing');
         }
+
+        init();
     </script>
 </body>
 </html>
