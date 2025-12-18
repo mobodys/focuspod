@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FocusPod - Immersive Edition</title>
+    <title>FocusPod - Retro Edition</title>
     <style>
         /* 引入复古数字字体 */
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
@@ -199,11 +199,11 @@
             </div>
         </div>
         
-        <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-mechanical-switch-click-1082.mp3" preload="auto"></audio>
+        <audio id="clickSound" src="assets/click.wav" preload="auto"></audio>
         
-        <audio id="ejectSound" src="https://actions.google.com/sounds/v1/tools/ejecting_a_cassette.ogg" preload="auto"></audio>
+        <audio id="ejectSound" src="assets/eject.wav" preload="auto"></audio>
         
-        <audio id="bgNoise" loop src="https://actions.google.com/sounds/v1/ambiences/rain_heavy_loud.ogg" preload="auto"></audio>
+        <audio id="bgNoise" loop src="assets/rain.wav" preload="auto"></audio>
     </div>
 
     <script>
@@ -220,7 +220,7 @@
         const ejectSound = document.getElementById('ejectSound');
         const bgNoise = document.getElementById('bgNoise');
 
-        // 设置白噪音音量 (稍微轻一点，不要盖过思考)
+        // 设置白噪音音量 (0.0 - 1.0)
         bgNoise.volume = 0.6;
 
         function updateDisplay() {
@@ -232,7 +232,7 @@
         function toggleTimer() {
             // 播放机械按键音
             clickSound.currentTime = 0;
-            clickSound.play();
+            clickSound.play().catch(e => console.log("Click play failed:", e));
 
             if (isRunning) {
                 // 暂停逻辑
@@ -263,15 +263,15 @@
                 player.classList.add('playing');
                 
                 // 播放白噪音
-                bgNoise.play().catch(e => console.log("Audio play failed:", e));
+                bgNoise.play().catch(e => console.log("Noise play failed:", e));
             }
             isRunning = !isRunning;
         }
 
         function resetTimer() {
-            // 播放磁带弹出音效 (更有仪式感)
+            // 播放磁带弹出音效
             ejectSound.currentTime = 0;
-            ejectSound.play();
+            ejectSound.play().catch(e => console.log("Eject play failed:", e));
             
             clearInterval(timerId);
             timeLeft = 25 * 60;
