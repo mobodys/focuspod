@@ -92,9 +92,12 @@
         .reel {
             width: 60px;
             height: 60px;
-            background: url('https://cdn-icons-png.flaticon.com/512/7258/7258087.png') no-repeat center center / contain;
+            /* 不用图片，用渐变画一个黑胶轴心 */
+            background: radial-gradient(circle at center, #111 20%, #333 21%, #333 50%, #111 51%);
             border-radius: 50%;
-            animation-play-state: paused; 
+            border: 2px solid #222;
+            animation-play-state: paused;
+            box-shadow: inset 0 0 5px rgba(255,255,255,0.2);
         }
 
         .player-container.playing .reel {
